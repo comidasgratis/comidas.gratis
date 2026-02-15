@@ -31,7 +31,7 @@ type Receiver = {
 };
 
 const churchAgent: Agent = {
-  '@id': 'https://comidas.gratis/church/profile#me',
+  '@id': 'https://comidas.gratis/church/profile/card#me',
   name: 'Church Provider',
 };
 
@@ -48,7 +48,7 @@ const church: Provider = {
 };
 
 const familyAgent: Agent = {
-  '@id': 'https://comidas.gratis/family/profile#me',
+  '@id': 'https://comidas.gratis/family/profile/card#me',
   name: 'Big Family',
 };
 
