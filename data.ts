@@ -30,6 +30,9 @@ type Receiver = {
   flags?: string[];
 };
 
+type Donator = { }
+type NeedValidator = { }
+
 const churchAgent: Agent = {
   '@id': 'https://comidas.gratis/church/profile/card#me',
   name: 'Church Provider',
