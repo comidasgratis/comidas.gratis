@@ -24,6 +24,8 @@ A “social” application to facilitate the successful grassroots organizing
   * Receiver (people, but also drop-off locations)
   * Deliverer
   * Provider
+  * Donator (people who are able to donate food; distinct from provider)
+  * NeedVerifier (organization or entity that validates Receiver need)
 
 ### Data: 
   * Users
