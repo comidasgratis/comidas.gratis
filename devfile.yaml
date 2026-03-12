@@ -1,0 +1,73 @@
+schemaVersion: 2.2.0
+metadata:
+  name: deno-codetogether
+  version: 1.0.0
+  description: Deno development workspace with CodeTogether for pair programming
+attributes:
+  che-editor.yaml: |
+    schemaVersion: 2.1.0
+    metadata:
+      name: che-code
+components:
+  - name: deno-dev
+    container:
+      image: quay.io/devfile/universal-developer-image:ubi9-latest
+      memoryLimit: 4Gi
+      cpuLimit: '2'
+      mountSources: true
+      env:
+        - name: DENO_INSTALL
+          value: /home/user/.deno
+        - name: PATH
+          value: /home/user/.deno/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      endpoints:
+        - name: deno-serve
+          targetPort: 8000
+          exposure: public
+          protocol: https
+commands:
+  - id: setup-workspace
+    exec:
+      component: deno-dev
+      commandLine: curl -fsSL https://deno.land/install.sh | sh
+      workingDir: ${PROJECT_SOURCE}
+      group:
+        kind: build
+        isDefault: true
+  - id: deno-run
+    exec:
+      component: deno-dev
+      commandLine: $DENO_INSTALL/bin/deno run --allow-net main.ts
+      workingDir: ${PROJECT_SOURCE}
+      group:
+        kind: run
+        isDefault: true
+  - id: deno-test
+    exec:
+      component: deno-dev
+      commandLine: $DENO_INSTALL/bin/deno test
+      workingDir: ${PROJECT_SOURCE}
+      group:
+        kind: test
+        isDefault: true
+  - id: deno-fmt
+    exec:
+      component: deno-dev
+      commandLine: $DENO_INSTALL/bin/deno fmt
+      workingDir: ${PROJECT_SOURCE}
+      group:
+        kind: run
+        isDefault: false
+  - id: deno-lint
+    exec:
+      component: deno-dev
+      commandLine: $DENO_INSTALL/bin/deno lint
+      workingDir: ${PROJECT_SOURCE}
+      group:
+        kind: run
+        isDefault: false
+events:
+  postStart:
+    - setup-workspace
+
+
