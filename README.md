@@ -49,3 +49,8 @@ The application should be able to traverse the linked data and provide matching 
 ## Challenges/Unknowns 
 
 I'm still unclear on the application side of how an individual’s Solid Pod can be leveraged when the application needs to “know” essentially all the data. Most Solid app examples are very individualistic
+
+
+## TODOs
+
+* Receiver calendar matches

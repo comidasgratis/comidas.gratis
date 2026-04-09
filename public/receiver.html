@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>comidas.gratis — Receiver</title>
+    <link rel="stylesheet" href="/receiver.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-top">
+        <h1>comidas.gratis</h1>
+        <nav class="site-nav" aria-label="Site sections">
+          <a href="/">Overview</a>
+          <a href="/provider.html">Provider</a>
+          <a href="/receiver.html" aria-current="page">Receiver</a>
+        </nav>
+      </div>
+      <p class="tagline">Nearby providers first — expand below to edit your receiver agent.</p>
+    </header>
+
+    <main class="role-main">
+      <h2>Receiver agent</h2>
+      <p class="page-intro">
+        Matches use your saved <strong>receiver</strong> availabilities (schedule + location +
+        coordinates) and the demo provider catalog. Increase the radius to include farther sites
+        (up to ~30 km for local fixtures).
+      </p>
+
+      <section class="panel nearby-panel" aria-labelledby="nearby-heading">
+        <h2 id="nearby-heading">Providers near your availability</h2>
+        <p class="nearby-intro">
+          Demo provider agents from the shared dataset, filtered by distance to each receiver
+          availability that has coordinates.
+        </p>
+        <label class="radius-row">
+          <span>Max distance (km)</span>
+          <input type="range" id="radius" min="1" max="40" value="8" step="1" />
+          <output id="radius-value" for="radius">8</output>
+        </label>
+        <div id="nearby-sections"></div>
+      </section>
+
+      <details class="panel edit-details">
+        <summary class="edit-summary">Edit receiver agent</summary>
+        <div class="edit-details-inner">
+          <p class="edit-details-intro muted">
+            Update display name, flags, and receiver availability rows (schedule, location name,
+            latitude / longitude, details). Save to refresh the matches above.
+          </p>
+          <form id="receiver-form" class="form-stack">
+            <fieldset>
+              <legend>Identity</legend>
+              <div class="field-grid">
+                <label>
+                  Display name
+                  <input type="text" id="agent-name" name="agentName" required autocomplete="name" />
+                </label>
+                <label>
+                  Profile ID (URI)
+                  <input type="url" id="agent-id" name="agentId" required readonly class="readonly-field" />
+                </label>
+              </div>
+              <p class="readonly-hint">Profile ID is fixed for this demo session.</p>
+            </fieldset>
+
+            <fieldset>
+              <legend>Flags</legend>
+              <label>
+                Diet / access flags (comma-separated)
+                <input
+                  type="text"
+                  id="flags"
+                  name="flags"
+                  placeholder="vegan, nut-free, …"
+                  autocomplete="off"
+                />
+              </label>
+            </fieldset>
+
+        <fieldset>
+          <legend>Receiver availability</legend>
+          <div id="presence-rows"></div>
+          <button type="button" class="btn secondary" id="add-presence">Add availability</button>
+        </fieldset>
+
+            <div class="form-actions">
+              <button type="submit" class="btn">Save profile</button>
+              <button type="button" class="btn secondary" id="reset-demo">Reset to demo defaults</button>
+            </div>
+            <p id="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </details>
+    </main>
+
+    <template id="presence-tpl">
+      <div class="presence-row">
+        <label class="wide">
+          Schedule start
+          <input type="text" data-field="start" placeholder="2026-02-19 T8:30am" required />
+        </label>
+        <label class="wide">
+          Schedule end (optional)
+          <input type="text" data-field="end" placeholder="2026-02-19 T5:30pm" />
+        </label>
+        <label class="wide">
+          Location label
+          <input type="text" data-field="location" required />
+        </label>
+        <div class="field-grid two wide">
+          <label>
+            Latitude (optional)
+            <input type="text" data-field="lat" inputmode="decimal" placeholder="36.0793" />
+          </label>
+          <label>
+            Longitude (optional)
+            <input type="text" data-field="lng" inputmode="decimal" placeholder="-78.9299" />
+          </label>
+        </div>
+        <label class="wide">
+          Details
+          <textarea data-field="details" rows="2"></textarea>
+        </label>
+        <button type="button" class="btn ghost row-remove" data-action="remove-row">Remove</button>
+      </div>
+    </template>
+
+    <script type="module" src="/receiver.js"></script>
+  </body>
+</html>

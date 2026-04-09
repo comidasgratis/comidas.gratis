@@ -1,0 +1,246 @@
+@import url('/styles.css');
+
+.role-main {
+  padding: clamp(1rem, 3vw, 2rem);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.role-main > h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.page-intro {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0 0 1.25rem;
+  max-width: 44rem;
+}
+
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 0;
+}
+
+.field-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 560px) {
+  .field-grid.two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.field-grid label,
+.presence-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.field-grid input,
+.field-grid textarea,
+.presence-row input,
+.presence-row textarea {
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin: 0;
+}
+
+fieldset legend {
+  padding: 0 0.35rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+#presence-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.presence-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+@media (min-width: 640px) {
+  .presence-row {
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+
+  .presence-row .wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--border);
+  justify-self: start;
+}
+
+.btn.ghost:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+#form-status {
+  min-height: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+
+#form-status.error {
+  color: var(--danger);
+}
+
+.readonly-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.nearby-panel {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+details.panel.edit-details {
+  margin-top: 0;
+}
+
+summary.edit-summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text);
+  padding: 0.15rem 0 0.15rem 1.35rem;
+  list-style: none;
+  position: relative;
+}
+
+summary.edit-summary::before {
+  content: '';
+  position: absolute;
+  left: 0.15rem;
+  top: 0.42em;
+  width: 0.45em;
+  height: 0.45em;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+
+details[open] > summary.edit-summary::before {
+  transform: rotate(45deg);
+  top: 0.5em;
+}
+
+summary.edit-summary::-webkit-details-marker {
+  display: none;
+}
+
+.edit-details-inner {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.edit-details-intro {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  max-width: 44rem;
+}
+
+.nearby-panel h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.nearby-intro {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0 0 1rem;
+}
+
+.radius-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.radius-row input[type='range'] {
+  flex: 1 1 200px;
+  min-width: 140px;
+  accent-color: var(--accent);
+}
+
+#nearby-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.nearby-group h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.nearby-group .card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.nearby-group .card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.nearby-group .card.match {
+  border-left: 3px solid var(--accent);
+}
+
+.nearby-group .muted {
+  margin: 0;
+}

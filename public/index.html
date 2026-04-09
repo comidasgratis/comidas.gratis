@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>comidas.gratis — provider / receiver match</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-top">
+        <h1>comidas.gratis</h1>
+        <nav class="site-nav" aria-label="Site sections">
+          <a href="/" aria-current="page">Overview</a>
+          <a href="/provider.html">Provider</a>
+          <a href="/receiver.html">Receiver</a>
+        </nav>
+      </div>
+      <p class="tagline">
+        Demo: geospatial matches between food providers and receivers (fake data).
+      </p>
+    </header>
+
+    <comidas-matching-store id="store"></comidas-matching-store>
+
+    <main class="layout">
+      <section class="panel home-links" aria-labelledby="role-pages-heading">
+        <h2 id="role-pages-heading">Edit profiles</h2>
+        <p class="muted home-links-intro">
+          Open the role-specific pages to edit demo <strong>agents</strong> (locations +
+          availabilities) in your browser (saved locally).
+        </p>
+        <p class="home-links-actions">
+          <a class="btn" href="/provider.html">Provider page</a>
+          <a class="btn secondary" href="/receiver.html">Receiver page</a>
+        </p>
+      </section>
+
+      <section class="panel controls" aria-labelledby="radius-label">
+        <h2 id="radius-label">Match radius</h2>
+        <label class="radius-row">
+          <span>Max distance (km)</span>
+          <input
+            type="range"
+            id="radius"
+            min="1"
+            max="40"
+            value="8"
+            step="1"
+          />
+          <output id="radius-value" for="radius">8</output>
+        </label>
+        <button type="button" id="reload-demo" class="btn secondary">
+          Reload demo data
+        </button>
+      </section>
+
+      <div class="columns">
+        <section class="panel" aria-labelledby="providers-heading">
+          <h2 id="providers-heading">Provider agents</h2>
+          <ul id="provider-list" class="card-list"></ul>
+        </section>
+
+        <section class="panel" aria-labelledby="receivers-heading">
+          <h2 id="receivers-heading">Receiver agents</h2>
+          <ul id="receiver-list" class="card-list"></ul>
+        </section>
+
+        <section class="panel panel-matches" aria-labelledby="matches-heading">
+          <h2 id="matches-heading">Matches</h2>
+          <p id="matches-empty" class="muted hidden">No pairs within the current radius.</p>
+          <ul id="match-list" class="card-list"></ul>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

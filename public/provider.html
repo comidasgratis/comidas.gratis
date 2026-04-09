@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>comidas.gratis — Provider</title>
+    <link rel="stylesheet" href="/provider.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-top">
+        <h1>comidas.gratis</h1>
+        <nav class="site-nav" aria-label="Site sections">
+          <a href="/">Overview</a>
+          <a href="/provider.html" aria-current="page">Provider</a>
+          <a href="/receiver.html">Receiver</a>
+        </nav>
+      </div>
+      <p class="tagline">Edit a provider agent: locations, schedules, provisions (saved in this browser).</p>
+    </header>
+
+    <main class="role-main">
+      <h2>Provider agent</h2>
+      <p class="page-intro">
+        An <strong>agent</strong> lists <strong>locations</strong> (name, coordinates, details) and
+        <strong>availabilities</strong> (schedule, provisions, which location). All saved slots use role
+        “provider”.
+      </p>
+
+      <form id="provider-form" class="form-stack">
+        <fieldset>
+          <legend>Identity</legend>
+          <div class="field-grid">
+            <label>
+              Display name
+              <input type="text" id="agent-name" name="agentName" required autocomplete="name" />
+            </label>
+            <label>
+              Profile ID (URI)
+              <input type="url" id="agent-id" name="agentId" required readonly class="readonly-field" />
+            </label>
+          </div>
+          <p class="readonly-hint">Profile ID is fixed for this demo session.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Locations</legend>
+          <p class="muted small-hint">Named sites where you offer food. Each availability picks one location.</p>
+          <div id="location-rows"></div>
+          <button type="button" class="btn secondary" id="add-location">Add location</button>
+        </fieldset>
+
+        <fieldset>
+          <legend>Availability (provider)</legend>
+          <div id="availability-rows"></div>
+          <button type="button" class="btn secondary" id="add-availability">Add availability</button>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" class="btn">Save agent</button>
+          <button type="button" class="btn secondary" id="reset-demo">Reset to demo defaults</button>
+        </div>
+        <p id="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </main>
+
+    <template id="location-tpl">
+      <div class="location-row">
+        <label class="wide">
+          Name
+          <input type="text" data-field="loc-name" required />
+        </label>
+        <div class="field-grid two">
+          <label>
+            Latitude
+            <input type="text" data-field="loc-lat" inputmode="decimal" required />
+          </label>
+          <label>
+            Longitude
+            <input type="text" data-field="loc-lng" inputmode="decimal" required />
+          </label>
+        </div>
+        <label class="wide">
+          Details
+          <textarea data-field="loc-details" rows="2"></textarea>
+        </label>
+        <button type="button" class="btn ghost row-remove" data-action="remove-location">Remove</button>
+      </div>
+    </template>
+
+    <template id="availability-tpl">
+      <div class="availability-row">
+        <label class="wide">
+          At location
+          <select data-field="location-index" class="location-select" required></select>
+        </label>
+        <label class="wide">
+          Schedule start
+          <input type="text" data-field="start" placeholder="2026-02-19 T9:30am" required />
+        </label>
+        <label class="wide">
+          Schedule end (optional)
+          <input type="text" data-field="end" placeholder="2026-02-19 T1:00pm" />
+        </label>
+        <label class="wide">
+          Provisions (comma-separated)
+          <input type="text" data-field="provisions" placeholder="fruit, bread, dairy" />
+        </label>
+        <button type="button" class="btn ghost row-remove" data-action="remove-availability">Remove</button>
+      </div>
+    </template>
+
+    <script type="module" src="/provider.js"></script>
+  </body>
+</html>

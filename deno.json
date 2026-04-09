@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "bundle": "deno bundle -c deno.json ./client/register-store.ts -o ./public/register-store.js && deno bundle -c deno.json ./client/role-pages-lib.ts -o ./public/role-pages-lib.js",
+    "serve": "deno run --allow-net --allow-read ./server.ts",
+    "start": "deno task bundle && deno task serve"
+  },
+  "imports": {
+    "@chapeaux/cpx-store": "./vendor/cpx-store.ts"
+  }
+}
