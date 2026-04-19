@@ -32,7 +32,6 @@ components:
           value: /home/user/.deno
         - name: PATH
           value: /home/user/.deno/bin:/home/user/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-        # Fascinator
         - name: FASCINATOR_SERVER_PORT
           value: "3078"
         - name: FASCINATOR_MANAGER_PORT
@@ -61,27 +60,23 @@ components:
       size: 1Gi
 
 commands:
-  - id: setup-workspace
+  - id: setup-all
     exec:
       component: deno-dev
-      commandLine: curl -fsSL https://deno.land/install.sh | sh
+      commandLine: |
+        export DENO_INSTALL=/home/user/.deno
+        export PATH="$DENO_INSTALL/bin:/home/user/.local/bin:$PATH"
+        curl -fsSL https://deno.land/install.sh | sh
+        /projects/fascinator/scripts/setup.sh
       workingDir: ${PROJECT_SOURCE}
       group:
         kind: build
         isDefault: true
 
-  - id: fascinator-setup
-    exec:
-      component: deno-dev
-      commandLine: /projects/fascinator/scripts/setup.sh
-      workingDir: /projects/fascinator
-      group:
-        kind: run
-
   - id: deno-run
     exec:
       component: deno-dev
-      commandLine: $DENO_INSTALL/bin/deno task start
+      commandLine: deno task start
       workingDir: ${PROJECT_SOURCE}
       group:
         kind: run
@@ -90,7 +85,7 @@ commands:
   - id: deno-test
     exec:
       component: deno-dev
-      commandLine: $DENO_INSTALL/bin/deno test
+      commandLine: deno test
       workingDir: ${PROJECT_SOURCE}
       group:
         kind: test
@@ -99,7 +94,7 @@ commands:
   - id: deno-fmt
     exec:
       component: deno-dev
-      commandLine: $DENO_INSTALL/bin/deno fmt
+      commandLine: deno fmt
       workingDir: ${PROJECT_SOURCE}
       group:
         kind: run
@@ -108,7 +103,7 @@ commands:
   - id: deno-lint
     exec:
       component: deno-dev
-      commandLine: $DENO_INSTALL/bin/deno lint
+      commandLine: deno lint
       workingDir: ${PROJECT_SOURCE}
       group:
         kind: run
@@ -116,5 +111,4 @@ commands:
 
 events:
   postStart:
-    - setup-workspace
-    - fascinator-setup
+    - setup-all
