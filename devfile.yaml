@@ -1,30 +1,65 @@
-schemaVersion: 2.2.0
+schemaVersion: 2.2.2
 metadata:
-  name: deno-codetogether
+  name: comidas-gratis-fascinator
   version: 1.0.0
-  description: Deno development workspace with CodeTogether for pair programming
+  description: comidas.gratis Deno workspace with Fascinator collaborative editing
 attributes:
   che-editor.yaml: |
     schemaVersion: 2.1.0
     metadata:
       name: che-code
+
+projects:
+  - name: fascinator
+    git:
+      remotes:
+        origin: https://github.com/chapeaux/fascinator.git
+      checkoutFrom:
+        revision: main
+
 components:
   - name: deno-dev
     container:
       image: quay.io/devfile/universal-developer-image:ubi9-latest
       memoryLimit: 4Gi
-      cpuLimit: '2'
+      cpuLimit: "2"
       mountSources: true
+      volumeMounts:
+        - name: fascinator-data
+          path: /data
       env:
         - name: DENO_INSTALL
           value: /home/user/.deno
         - name: PATH
-          value: /home/user/.deno/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          value: /home/user/.deno/bin:/home/user/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        # Fascinator
+        - name: FASCINATOR_SERVER_PORT
+          value: "3078"
+        - name: FASCINATOR_MANAGER_PORT
+          value: "3079"
+        - name: FASCINATOR_HOST_PORT
+          value: "3200"
+        - name: FASCINATOR_DATA_DIR
+          value: /data
+        - name: FASCINATOR_HOST_NAME
+          value: Developer
       endpoints:
         - name: deno-serve
           targetPort: 8000
           exposure: public
           protocol: https
+        - name: fascinator-mgr
+          targetPort: 3079
+          exposure: public
+          protocol: https
+        - name: fascinator-ws
+          targetPort: 3078
+          exposure: internal
+
+  - name: fascinator-data
+    volume:
+      size: 1Gi
+
 commands:
   - id: setup-workspace
     exec:
@@ -34,14 +69,24 @@ commands:
       group:
         kind: build
         isDefault: true
+
+  - id: fascinator-setup
+    exec:
+      component: deno-dev
+      commandLine: /projects/fascinator/scripts/setup.sh
+      workingDir: /projects/fascinator
+      group:
+        kind: run
+
   - id: deno-run
     exec:
       component: deno-dev
-      commandLine: $DENO_INSTALL/bin/deno run --allow-net main.ts
+      commandLine: $DENO_INSTALL/bin/deno task start
       workingDir: ${PROJECT_SOURCE}
       group:
         kind: run
         isDefault: true
+
   - id: deno-test
     exec:
       component: deno-dev
@@ -50,6 +95,7 @@ commands:
       group:
         kind: test
         isDefault: true
+
   - id: deno-fmt
     exec:
       component: deno-dev
@@ -58,6 +104,7 @@ commands:
       group:
         kind: run
         isDefault: false
+
   - id: deno-lint
     exec:
       component: deno-dev
@@ -66,8 +113,8 @@ commands:
       group:
         kind: run
         isDefault: false
+
 events:
   postStart:
     - setup-workspace
-
-
+    - fascinator-setup
