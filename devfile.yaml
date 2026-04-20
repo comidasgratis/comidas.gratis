@@ -24,9 +24,6 @@ components:
       memoryLimit: 4Gi
       cpuLimit: "2"
       mountSources: true
-      volumeMounts:
-        - name: fascinator-data
-          path: /data
       env:
         - name: DENO_INSTALL
           value: /home/user/.deno
@@ -39,7 +36,7 @@ components:
         - name: FASCINATOR_HOST_PORT
           value: "3200"
         - name: FASCINATOR_DATA_DIR
-          value: /data
+          value: /projects/.fascinator-data
         - name: FASCINATOR_HOST_NAME
           value: Developer
       endpoints:
@@ -54,10 +51,6 @@ components:
         - name: fascinator-ws
           targetPort: 3078
           exposure: internal
-
-  - name: fascinator-data
-    volume:
-      size: 1Gi
 
 commands:
   - id: setup-all
