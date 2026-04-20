@@ -53,13 +53,14 @@ components:
           exposure: internal
 
 commands:
-  - id: setup-all
+  - id: fascinator-bootstrap
     exec:
       component: deno-dev
-      commandLine: /projects/fascinator/scripts/setup.sh --background
-      workingDir: /projects/fascinator
+      commandLine: |
+        (while [ ! -f /projects/fascinator/scripts/setup.sh ]; do sleep 1; done && /bin/bash /projects/fascinator/scripts/setup.sh --background) &
+      workingDir: /projects
       group:
-        kind: build
+        kind: run
         isDefault: true
 
   - id: deno-run
@@ -69,7 +70,6 @@ commands:
       workingDir: ${PROJECT_SOURCE}
       group:
         kind: run
-        isDefault: true
 
   - id: deno-test
     exec:
@@ -100,4 +100,4 @@ commands:
 
 events:
   postStart:
-    - setup-all
+    - fascinator-bootstrap
