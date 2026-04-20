@@ -49,9 +49,7 @@ commands:
   - id: fascinator-bootstrap
     exec:
       component: deno-dev
-      commandLine: >-
-        (test -d /projects/fascinator || git clone https://github.com/chapeaux/fascinator.git /projects/fascinator)
-        && /bin/bash /projects/fascinator/scripts/setup.sh --background
+      commandLine: nohup /bin/bash -c '(test -d /projects/fascinator || git clone https://github.com/chapeaux/fascinator.git /projects/fascinator) && /bin/bash /projects/fascinator/scripts/setup.sh' > /tmp/fascinator-setup.log 2>&1 &
       workingDir: /projects
       group:
         kind: run
