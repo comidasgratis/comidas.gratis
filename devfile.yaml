@@ -21,8 +21,8 @@ components:
   - name: deno-dev
     container:
       image: quay.io/devfile/universal-developer-image:ubi9-latest
-      memoryLimit: 4Gi
-      cpuLimit: "2"
+      memoryLimit: 2Gi
+      cpuLimit: "1"
       mountSources: true
       env:
         - name: DENO_INSTALL
