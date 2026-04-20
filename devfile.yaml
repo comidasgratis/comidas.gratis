@@ -4,6 +4,7 @@ metadata:
   version: 1.0.0
   description: comidas.gratis Deno workspace with Fascinator collaborative editing
 attributes:
+  controller.devfile.io/storage-type: ephemeral
   che-editor.yaml: |
     schemaVersion: 2.1.0
     metadata:
