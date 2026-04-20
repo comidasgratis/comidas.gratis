@@ -44,6 +44,18 @@ components:
         - name: fascinator-ws
           targetPort: 3078
           exposure: internal
+        - name: guest-1
+          targetPort: 3201
+          exposure: public
+          protocol: https
+        - name: guest-2
+          targetPort: 3202
+          exposure: public
+          protocol: https
+        - name: guest-3
+          targetPort: 3203
+          exposure: public
+          protocol: https
 
 commands:
   - id: fascinator-bootstrap
