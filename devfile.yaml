@@ -10,20 +10,6 @@ attributes:
     metadata:
       name: che-code
 
-projects:
-  - name: comidas-gratis
-    git:
-      remotes:
-        origin: https://github.com/comidasgratis/comidas.gratis.git
-      checkoutFrom:
-        revision: main
-  - name: fascinator
-    git:
-      remotes:
-        origin: https://github.com/chapeaux/fascinator.git
-      checkoutFrom:
-        revision: main
-
 components:
   - name: deno-dev
     container:
@@ -63,8 +49,9 @@ commands:
   - id: fascinator-bootstrap
     exec:
       component: deno-dev
-      commandLine: |
-        (while [ ! -f /projects/fascinator/scripts/setup.sh ]; do sleep 1; done && /bin/bash /projects/fascinator/scripts/setup.sh --background) &
+      commandLine: >-
+        (test -d /projects/fascinator || git clone https://github.com/chapeaux/fascinator.git /projects/fascinator)
+        && /bin/bash /projects/fascinator/scripts/setup.sh --background
       workingDir: /projects
       group:
         kind: run
