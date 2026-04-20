@@ -56,12 +56,8 @@ commands:
   - id: setup-all
     exec:
       component: deno-dev
-      commandLine: |
-        export DENO_INSTALL=/home/user/.deno
-        export PATH="$DENO_INSTALL/bin:/home/user/.local/bin:$PATH"
-        curl -fsSL https://deno.land/install.sh | sh
-        /projects/fascinator/scripts/setup.sh
-      workingDir: ${PROJECT_SOURCE}
+      commandLine: /projects/fascinator/scripts/setup.sh --background
+      workingDir: /projects/fascinator
       group:
         kind: build
         isDefault: true
