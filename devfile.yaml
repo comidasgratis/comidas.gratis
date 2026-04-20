@@ -11,6 +11,12 @@ attributes:
       name: che-code
 
 projects:
+  - name: comidas-gratis
+    git:
+      remotes:
+        origin: https://github.com/comidasgratis/comidas.gratis.git
+      checkoutFrom:
+        revision: main
   - name: fascinator
     git:
       remotes:
