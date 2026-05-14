@@ -9,6 +9,14 @@ import {
   formatSchedule,
   providerAvailabilitiesAtLocation,
 } from './availability-display.js';
+import {
+  initSession,
+  solidLogin,
+  solidLogout,
+  getSessionInfo,
+  readAgentFromPod,
+  writeAgentToPod,
+} from './solid-pod.js';
 
 const STORAGE_KEY = 'comidas.gratis.receiver.v4';
 
@@ -283,7 +291,32 @@ function setStatus(el, message, isError) {
   el.classList.toggle('error', Boolean(isError));
 }
 
-function main() {
+function updateLoginUI(info) {
+  const loggedOut = document.querySelector('#logged-out-view');
+  const loggedIn = document.querySelector('#logged-in-view');
+  if (!loggedOut || !loggedIn) return;
+  if (info.isLoggedIn) {
+    loggedOut.hidden = true;
+    loggedIn.hidden = false;
+    document.querySelector('#user-name').textContent = info.webId ?? '';
+  } else {
+    loggedOut.hidden = false;
+    loggedIn.hidden = true;
+  }
+}
+
+function wireLoginUI() {
+  document.querySelector('#btn-login')?.addEventListener('click', () => {
+    const issuer = document.querySelector('#oidc-issuer')?.value?.trim();
+    if (issuer) solidLogin(issuer);
+  });
+  document.querySelector('#btn-logout')?.addEventListener('click', async () => {
+    await solidLogout();
+    updateLoginUI({ isLoggedIn: false });
+  });
+}
+
+async function main() {
   const form = document.querySelector('#receiver-form');
   const status = document.querySelector('#form-status');
   const list = document.querySelector('#presence-rows');
@@ -291,7 +324,28 @@ function main() {
   const radius = document.querySelector('#radius');
   const radiusValue = document.querySelector('#radius-value');
 
-  let current = loadProfile();
+  wireLoginUI();
+  const session = await initSession();
+  updateLoginUI(session);
+
+  let current;
+  if (session.isLoggedIn) {
+    try {
+      const podAgent = await readAgentFromPod();
+      if (podAgent) {
+        current = podAgent;
+        saveProfile(podAgent);
+        setStatus(status, 'Loaded from Solid Pod.');
+      } else {
+        current = loadProfile();
+      }
+    } catch {
+      current = loadProfile();
+    }
+  } else {
+    current = loadProfile();
+  }
+
   fillForm(current);
   renderNearby(current, Number(radius.value));
 
@@ -325,7 +379,7 @@ function main() {
     setStatus(status, 'Restored demo defaults and saved.');
   });
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const agentName = document.querySelector('#agent-name').value.trim();
     if (!agentName) {
@@ -340,7 +394,17 @@ function main() {
     current = agent;
     saveProfile(agent);
     renderNearby(current, Number(radius.value));
-    setStatus(status, 'Saved to local storage in this browser.');
+
+    if (getSessionInfo().isLoggedIn) {
+      try {
+        await writeAgentToPod(agent);
+        setStatus(status, 'Saved to Solid Pod and local storage.');
+      } catch (err) {
+        setStatus(status, `Saved locally. Pod write failed: ${err.message}`, true);
+      }
+    } else {
+      setStatus(status, 'Saved to local storage in this browser.');
+    }
   });
 }
 

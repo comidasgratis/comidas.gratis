@@ -5,6 +5,11 @@
     "start": "deno task bundle && deno task serve"
   },
   "imports": {
-    "@chapeaux/cpx-store": "./vendor/cpx-store.ts"
+    "@chapeaux/cpx-store": "jsr:@chapeaux/cpx-store@^0.7.5",
+    "@rdfjs/wrapper": "npm:@rdfjs/wrapper@^0.32.0",
+    "@rdfjs/types": "npm:@rdfjs/types@^2.0.0",
+    "@solid/object": "npm:@solid/object@^0.5.0",
+    "n3": "npm:n3@^1.26.0",
+    "@types/n3": "npm:@types/n3@^1.21.0"
   }
 }

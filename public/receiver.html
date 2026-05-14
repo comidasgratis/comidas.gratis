@@ -19,6 +19,20 @@
       <p class="tagline">Nearby providers first — expand below to edit your receiver agent.</p>
     </header>
 
+    <div id="solid-login" class="solid-login">
+      <div id="logged-out-view">
+        <label>
+          Solid provider
+          <input type="url" id="oidc-issuer" value="https://login.inrupt.com" placeholder="https://login.inrupt.com" />
+        </label>
+        <button type="button" id="btn-login" class="btn">Log in with Solid</button>
+      </div>
+      <div id="logged-in-view" hidden>
+        <span id="user-name"></span>
+        <button type="button" id="btn-logout" class="btn secondary">Log out</button>
+      </div>
+    </div>
+
     <main class="role-main">
       <h2>Receiver agent</h2>
       <p class="page-intro">

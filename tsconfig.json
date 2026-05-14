@@ -6,11 +6,7 @@
     "strict": true,
     "noEmit": true,
     "lib": ["ES2022", "DOM"],
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@chapeaux/cpx-store": ["./vendor/cpx-store.ts"]
-    }
+    "skipLibCheck": true
   },
-  "include": ["data/**/*.ts", "comidas-matching-store.ts", "vendor/*.ts", "client/*.ts"]
+  "include": ["data/**/*.ts", "comidas-matching-store.ts", "client/*.ts"]
 }

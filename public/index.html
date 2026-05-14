@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>comidas.gratis — provider / receiver match</title>
     <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/calendar.css" />
   </head>
   <body>
     <header class="site-header">
@@ -20,6 +21,20 @@
         Demo: geospatial matches between food providers and receivers (fake data).
       </p>
     </header>
+
+    <div id="solid-login" class="solid-login">
+      <div id="logged-out-view">
+        <label>
+          Solid provider
+          <input type="url" id="oidc-issuer" value="https://login.inrupt.com" placeholder="https://login.inrupt.com" />
+        </label>
+        <button type="button" id="btn-login" class="btn">Log in with Solid</button>
+      </div>
+      <div id="logged-in-view" hidden>
+        <span id="user-name"></span>
+        <button type="button" id="btn-logout" class="btn secondary">Log out</button>
+      </div>
+    </div>
 
     <comidas-matching-store id="store"></comidas-matching-store>
 
@@ -55,23 +70,21 @@
         </button>
       </section>
 
-      <div class="columns">
-        <section class="panel" aria-labelledby="providers-heading">
-          <h2 id="providers-heading">Provider agents</h2>
-          <ul id="provider-list" class="card-list"></ul>
-        </section>
+      <section class="panel calendar-panel" aria-labelledby="calendar-heading">
+        <h2 id="calendar-heading">Availability calendar</h2>
+        <div class="cal-legend">
+          <span class="cal-legend-item cal-legend--provider">Provider</span>
+          <span class="cal-legend-item cal-legend--receiver">Receiver</span>
+        </div>
+        <div id="calendar-root"></div>
+      </section>
 
-        <section class="panel" aria-labelledby="receivers-heading">
-          <h2 id="receivers-heading">Receiver agents</h2>
-          <ul id="receiver-list" class="card-list"></ul>
-        </section>
-
-        <section class="panel panel-matches" aria-labelledby="matches-heading">
-          <h2 id="matches-heading">Matches</h2>
-          <p id="matches-empty" class="muted hidden">No pairs within the current radius.</p>
-          <ul id="match-list" class="card-list"></ul>
-        </section>
-      </div>
+      <section class="panel panel-matches" aria-labelledby="matches-heading">
+        <h2 id="matches-heading">Matches</h2>
+        <p id="matches-range" class="muted"></p>
+        <p id="matches-empty" class="muted hidden">No matches in the selected time range.</p>
+        <ul id="match-list" class="card-list"></ul>
+      </section>
     </main>
 
     <script type="module" src="/app.js"></script>

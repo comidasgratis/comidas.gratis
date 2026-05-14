@@ -7,6 +7,8 @@
   --muted: #8b9bab;
   --accent: #3d9e6f;
   --accent-dim: #2d7a55;
+  --receiver: #4a8ecb;
+  --receiver-dim: #3a71a3;
   --danger: #c75c5c;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, sans-serif;
   line-height: 1.45;
@@ -21,6 +23,8 @@
     --muted: #5c6b7a;
     --accent: #207a4e;
     --accent-dim: #1a6340;
+    --receiver: #2d6fa3;
+    --receiver-dim: #245b87;
     --danger: #b33a3a;
   }
 }
@@ -283,4 +287,45 @@ output {
   font-weight: 600;
   color: var(--muted);
   margin: 0.35rem 0 0.15rem;
+}
+
+.solid-login {
+  padding: 0.75rem clamp(1rem, 4vw, 2.5rem);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.solid-login label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.solid-login input[type='url'] {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  width: 16rem;
+}
+
+#logged-in-view {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#user-name {
+  font-weight: 600;
+  font-size: 0.85rem;
 }

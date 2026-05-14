@@ -1,0 +1,18 @@
+{
+  "@context": "https://www.w3.org/ns/solid/oidc-context.jsonld",
+  "client_id": "https://comidas.gratis/client-id.jsonld",
+  "client_name": "comidas.gratis",
+  "redirect_uris": [
+    "http://localhost:8080/",
+    "http://localhost:8080/provider.html",
+    "http://localhost:8080/receiver.html",
+    "https://comidas.gratis/",
+    "https://comidas.gratis/provider.html",
+    "https://comidas.gratis/receiver.html"
+  ],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "scope": "openid webid profile",
+  "token_endpoint_auth_method": "none",
+  "application_type": "web"
+}

@@ -1,121 +1,69 @@
 /**
- * Vanilla UI: wires the ComidasMatchingStore web component to the page.
+ * Vanilla UI: wires the ComidasMatchingStore web component to the calendar view.
  * Depends on /register-store.js (bundled from client/register-store.ts).
  */
 import './register-store.js';
+import { createCalendar } from './calendar.js';
+import { parseScheduleDate } from './availability-display.js';
 import {
-  groupAvailabilitiesByLocation,
-  formatSchedule,
-} from './availability-display.js';
+  initSession,
+  solidLogin,
+  solidLogout,
+} from './solid-pod.js';
 
-/** @param {HTMLElement & { state: object }} store */
 function agentNameById(store, id) {
   const a = store.state.agents.find((x) => x['@id'] === id);
   return a ? a.name : id;
 }
 
-/** @param {{ availabilities: Array<{ role: string }> }} agent */
-function providerAvailabilities(agent) {
-  return agent.availabilities.filter((av) => av.role === 'provider');
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
-/** @param {{ availabilities: Array<{ role: string }> }} agent */
-function receiverAvailabilities(agent) {
-  return agent.availabilities.filter((av) => av.role === 'receiver');
-}
-
-function coordStr(loc) {
-  const c = loc?.coordinates;
-  return c ? `${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}` : '—';
-}
-
-function renderProviderCard(p) {
-  const pavs = providerAvailabilities(p);
-  const groups = groupAvailabilitiesByLocation(pavs);
-  let inner = `<strong>${escapeHtml(p.name)}</strong>`;
-  for (const g of groups) {
-    const loc = g.location;
-    const items = [...g.items].sort((a, b) =>
-      String(a.schedule?.start ?? '').localeCompare(String(b.schedule?.start ?? '')),
-    );
-    inner += `<div class="location-block">`;
-    inner += `<div class="meta loc-title">${escapeHtml(loc.name ?? '—')} · ${escapeHtml(coordStr(loc))}</div>`;
-    if (loc.details) {
-      inner += `<div class="meta">${escapeHtml(loc.details)}</div>`;
-    }
-    inner += `<ul class="schedule-list">`;
-    for (const av of items) {
-      const prov = (av.provisions ?? []).join(', ');
-      const line = escapeHtml(formatSchedule(av));
-      const extra = prov ? ` · ${escapeHtml(prov)}` : '';
-      inner += `<li>${line}${extra}</li>`;
-    }
-    inner += `</ul></div>`;
+function formatDateRange(start, end) {
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+  const s = `${months[start.getMonth()]} ${start.getDate()}`;
+  const e = `${months[end.getMonth()]} ${end.getDate()}, ${end.getFullYear()}`;
+  if (start.getMonth() === end.getMonth() && start.getDate() === end.getDate()) {
+    return `${s}, ${start.getFullYear()}`;
   }
-  return inner;
+  return `${s}–${e}`;
 }
 
-function renderReceiverCard(r) {
-  const ravs = receiverAvailabilities(r);
-  const groups = groupAvailabilitiesByLocation(ravs);
-  const flags = r.flags?.length ? ` · ${r.flags.join(', ')}` : '';
-  let inner = `<strong>${escapeHtml(r.name)}${escapeHtml(flags)}</strong>`;
-  for (const g of groups) {
-    const loc = g.location;
-    const items = [...g.items].sort((a, b) =>
-      String(a.schedule?.start ?? '').localeCompare(String(b.schedule?.start ?? '')),
-    );
-    inner += `<div class="location-block">`;
-    inner += `<div class="meta loc-title">${escapeHtml(loc.name ?? '—')} · ${escapeHtml(coordStr(loc))}</div>`;
-    if (loc.details) {
-      inner += `<div class="meta">${escapeHtml(loc.details)}</div>`;
-    }
-    inner += `<ul class="schedule-list limit-h">`;
-    for (const av of items) {
-      inner += `<li>${escapeHtml(formatSchedule(av))}</li>`;
-    }
-    inner += `</ul></div>`;
-  }
-  return inner;
-}
-
-/** @param {HTMLElement & { state: object }} store */
-function render(store) {
-  const providerList = document.querySelector('#provider-list');
-  const receiverList = document.querySelector('#receiver-list');
+function renderFilteredMatches(store, rangeStart, rangeEnd) {
   const matchList = document.querySelector('#match-list');
   const matchesEmpty = document.querySelector('#matches-empty');
-
+  const matchesRange = document.querySelector('#matches-range');
   const agents = store.state.agents ?? [];
-  const providers = agents.filter((a) =>
-    a.availabilities.some((av) => av.role === 'provider'),
-  );
-  const receivers = agents.filter((a) =>
-    a.availabilities.some((av) => av.role === 'receiver'),
-  );
+  const matches = store.state.matches ?? [];
 
-  providerList.replaceChildren(
-    ...providers.map((p) => {
-      const li = document.createElement('li');
-      li.className = 'card';
-      li.innerHTML = renderProviderCard(p);
-      return li;
-    }),
-  );
+  matchesRange.textContent = formatDateRange(rangeStart, rangeEnd);
 
-  receiverList.replaceChildren(
-    ...receivers.map((r) => {
-      const li = document.createElement('li');
-      li.className = 'card';
-      li.innerHTML = renderReceiverCard(r);
-      return li;
-    }),
-  );
+  const filtered = matches.filter((m) => {
+    const recv = agents.find((a) => a['@id'] === m.receiverAgentId);
+    if (!recv) return false;
+    const av = recv.availabilities?.[m.receiverAvailabilityIndex];
+    if (!av) return false;
+    const start = parseScheduleDate(av.schedule?.start);
+    if (!start) return false;
+    let end = parseScheduleDate(av.schedule?.end);
+    if (!end) {
+      end = new Date(start);
+      end.setHours(end.getHours() + 1);
+    }
+    return start < rangeEnd && end > rangeStart;
+  });
 
-  const matches = store.state.matches;
-  matchesEmpty.classList.toggle('hidden', matches.length > 0);
+  matchesEmpty.classList.toggle('hidden', filtered.length > 0);
   matchList.replaceChildren(
-    ...matches.map((m) => {
+    ...filtered.map((m) => {
       const li = document.createElement('li');
       li.className = 'card match';
       const pName = agentNameById(store, m.providerAgentId);
@@ -137,19 +85,52 @@ function render(store) {
   );
 }
 
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+function updateLoginUI(info) {
+  const loggedOut = document.querySelector('#logged-out-view');
+  const loggedIn = document.querySelector('#logged-in-view');
+  if (!loggedOut || !loggedIn) return;
+  if (info.isLoggedIn) {
+    loggedOut.hidden = true;
+    loggedIn.hidden = false;
+    document.querySelector('#user-name').textContent = info.webId ?? '';
+  } else {
+    loggedOut.hidden = false;
+    loggedIn.hidden = true;
+  }
 }
 
-function main() {
+function wireLoginUI() {
+  document.querySelector('#btn-login')?.addEventListener('click', () => {
+    const issuer = document.querySelector('#oidc-issuer')?.value?.trim();
+    if (issuer) solidLogin(issuer);
+  });
+  document.querySelector('#btn-logout')?.addEventListener('click', async () => {
+    await solidLogout();
+    updateLoginUI({ isLoggedIn: false });
+  });
+}
+
+async function main() {
+  wireLoginUI();
+  const session = await initSession();
+  updateLoginUI(session);
+
   const store = document.querySelector('#store');
   if (!store || !('seedDemoData' in store)) {
     console.error('comidas-matching-store missing; run: deno task bundle');
     return;
+  }
+
+  const calendar = createCalendar(document.querySelector('#calendar-root'), {
+    onRangeChange(start, end) {
+      renderFilteredMatches(store, start, end);
+    },
+  });
+
+  function render() {
+    calendar.setEvents(store.state.agents ?? []);
+    const { start, end } = calendar.getRange();
+    renderFilteredMatches(store, start, end);
   }
 
   store.seedDemoData();
@@ -164,17 +145,17 @@ function main() {
 
   radius.addEventListener('change', () => {
     store.setMaxMatchKm(Number(radius.value));
-    render(store);
+    render();
   });
 
   reloadBtn.addEventListener('click', () => {
     store.seedDemoData();
     store.setMaxMatchKm(Number(radius.value));
-    render(store);
+    render();
   });
 
-  store.addEventListener('change', () => render(store));
-  render(store);
+  store.addEventListener('change', () => render());
+  render();
 }
 
 main();

@@ -1,4 +1,12 @@
 import { defaultProviderAgent } from './role-pages-lib.js';
+import {
+  initSession,
+  solidLogin,
+  solidLogout,
+  getSessionInfo,
+  readAgentFromPod,
+  writeAgentToPod,
+} from './solid-pod.js';
 
 const STORAGE_KEY = 'comidas.gratis.provider.v4';
 
@@ -187,7 +195,32 @@ function setStatus(el, message, isError) {
   el.classList.toggle('error', Boolean(isError));
 }
 
-function main() {
+function updateLoginUI(info) {
+  const loggedOut = document.querySelector('#logged-out-view');
+  const loggedIn = document.querySelector('#logged-in-view');
+  if (!loggedOut || !loggedIn) return;
+  if (info.isLoggedIn) {
+    loggedOut.hidden = true;
+    loggedIn.hidden = false;
+    document.querySelector('#user-name').textContent = info.webId ?? '';
+  } else {
+    loggedOut.hidden = false;
+    loggedIn.hidden = true;
+  }
+}
+
+function wireLoginUI() {
+  document.querySelector('#btn-login')?.addEventListener('click', () => {
+    const issuer = document.querySelector('#oidc-issuer')?.value?.trim();
+    if (issuer) solidLogin(issuer);
+  });
+  document.querySelector('#btn-logout')?.addEventListener('click', async () => {
+    await solidLogout();
+    updateLoginUI({ isLoggedIn: false });
+  });
+}
+
+async function main() {
   const form = document.querySelector('#provider-form');
   const status = document.querySelector('#form-status');
   const locList = document.querySelector('#location-rows');
@@ -195,7 +228,26 @@ function main() {
   const locTpl = document.querySelector('#location-tpl');
   const avTpl = document.querySelector('#availability-tpl');
 
-  fillForm(loadProfile());
+  wireLoginUI();
+  const session = await initSession();
+  updateLoginUI(session);
+
+  if (session.isLoggedIn) {
+    try {
+      const podAgent = await readAgentFromPod();
+      if (podAgent) {
+        fillForm(podAgent);
+        saveProfile(podAgent);
+        setStatus(status, 'Loaded from Solid Pod.');
+      } else {
+        fillForm(loadProfile());
+      }
+    } catch {
+      fillForm(loadProfile());
+    }
+  } else {
+    fillForm(loadProfile());
+  }
 
   document.querySelector('#add-location').addEventListener('click', () => {
     addLocationRow(locList, locTpl, null);
@@ -231,7 +283,7 @@ function main() {
     setStatus(status, 'Restored demo defaults and saved.');
   });
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const agentName = document.querySelector('#agent-name').value.trim();
     if (!agentName) {
@@ -248,7 +300,17 @@ function main() {
       return;
     }
     saveProfile(agent);
-    setStatus(status, 'Saved to local storage in this browser.');
+
+    if (getSessionInfo().isLoggedIn) {
+      try {
+        await writeAgentToPod(agent);
+        setStatus(status, 'Saved to Solid Pod and local storage.');
+      } catch (err) {
+        setStatus(status, `Saved locally. Pod write failed: ${err.message}`, true);
+      }
+    } else {
+      setStatus(status, 'Saved to local storage in this browser.');
+    }
   });
 }
 

@@ -22,7 +22,5 @@
     "url": "https://github.com/comidasgratis/comidas.gratis/issues"
   },
   "homepage": "https://github.com/comidasgratis/comidas.gratis#readme",
-  "dependencies": {
-    "@chapeaux/cpx-store": "^0.1.0"
-  }
+  "dependencies": {}
 }
