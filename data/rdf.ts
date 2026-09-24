@@ -7,7 +7,6 @@ import {
   TermFrom,
 } from "@rdfjs/wrapper";
 import type { DatasetCore, DataFactory } from "@rdfjs/types";
-import { Agent as SolidAgent } from "@solid/object";
 import { FOAF, ICAL, RDF, WGS84, COMIDAS } from "../vocabulary.js";
 import type {
   Agent,
@@ -100,13 +99,13 @@ export class AvailabilityRdf extends TermWrapper {
   }
 }
 
-export class ComidasAgent extends SolidAgent {
+export class ComidasAgent extends TermWrapper {
   get id(): string {
     return this.value;
   }
 
-  override get name(): string | null {
-    return super.name;
+  get name(): string {
+    return this.singularNullable(FOAF.name, LiteralAs.string) ?? this.id;
   }
   set name(value: string) {
     this.overwrite(FOAF.name, value, LiteralFrom.string);

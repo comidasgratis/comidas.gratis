@@ -68,12 +68,24 @@ function addAvailabilityRow(container, tpl, data) {
     sel.value = String(data.locationIndex);
   }
   if (data?.schedule) {
-    row.querySelector('[data-field="start"]').value = data.schedule.start ?? '';
-    row.querySelector('[data-field="end"]').value = data.schedule.end ?? '';
+    row.querySelector('[data-field="start"]').value = datetimeLocalValue(data.schedule.start);
+    row.querySelector('[data-field="end"]').value = datetimeLocalValue(data.schedule.end);
   }
   if (data?.provisions) {
     row.querySelector('[data-field="provisions"]').value = data.provisions.join(', ');
   }
+}
+
+function datetimeLocalValue(value) {
+  if (!value) return '';
+  const native = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/.exec(value);
+  if (native) return native[1];
+  const legacy = /^(\d{4}-\d{2}-\d{2})\s*T(\d{1,2}):(\d{2})(am|pm)$/i.exec(value);
+  if (!legacy) return '';
+  let hour = Number(legacy[2]);
+  if (legacy[4].toLowerCase() === 'am' && hour === 12) hour = 0;
+  if (legacy[4].toLowerCase() === 'pm' && hour !== 12) hour += 12;
+  return `${legacy[1]}T${String(hour).padStart(2, '0')}:${legacy[3]}`;
 }
 
 function collectLocations() {

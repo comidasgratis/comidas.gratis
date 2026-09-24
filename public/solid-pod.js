@@ -19633,12 +19633,12 @@ var AvailabilityRdf = class extends TermWrapper2 {
     this.overwriteNullable(ICAL.summary, value, LiteralFrom2.string);
   }
 };
-var ComidasAgent = class extends Agent {
+var ComidasAgent = class extends TermWrapper2 {
   get id() {
     return this.value;
   }
   get name() {
-    return super.name;
+    return this.singularNullable(FOAF2.name, LiteralAs2.string) ?? this.id;
   }
   set name(value) {
     this.overwrite(FOAF2.name, value, LiteralFrom2.string);
@@ -19744,9 +19744,20 @@ function agentFromRdf(node) {
 }
 
 // client/solid-pod.ts
-var AGENT_PATH = "comidas-gratis/agent.ttl";
-var CONTAINER_PATH = "comidas-gratis/";
+var AGENT_PATH = "public/comidas.gratis/agent.ttl";
+var CONTAINER_PATH = "public/comidas.gratis/";
+var pendingAuth = /* @__PURE__ */ new Map();
 async function ensureAuthenticated(webId) {
+  const pending = pendingAuth.get(webId);
+  if (pending) return pending;
+  const probe = authenticate(webId).catch((error) => {
+    pendingAuth.delete(webId);
+    throw error;
+  });
+  pendingAuth.set(webId, probe);
+  return probe;
+}
+async function authenticate(webId) {
   const storage = await getStorageUrl(webId);
   if (!storage) throw new Error("No Pod storage URL found in WebID profile");
   const base = storage.endsWith("/") ? storage : `${storage}/`;
@@ -19755,14 +19766,36 @@ async function ensureAuthenticated(webId) {
     method: "PUT",
     headers: {
       "Content-Type": "text/turtle",
-      "If-None-Match": "*"
+      "If-None-Match": "*",
+      Link: '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"'
     },
     body: ""
   });
-  if (!resp.ok && resp.status !== 412) {
+  if (!resp.ok && resp.status !== 409 && resp.status !== 412) {
     throw new Error(`Auth probe failed: ${resp.status} ${resp.statusText}`);
   }
+  await createAgentIfMissing(webId, agentUrl(storage));
   return storage;
+}
+async function createAgentIfMissing(webId, url) {
+  const store = new N3Store();
+  agentToRdf({
+    "@id": webId,
+    name: webId,
+    locations: [],
+    availabilities: []
+  }, store, N3DataFactory_default2);
+  const resp = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "text/turtle",
+      "If-None-Match": "*"
+    },
+    body: await serializeDataset(store)
+  });
+  if (!resp.ok && resp.status !== 409 && resp.status !== 412) {
+    throw new Error(`Agent resource creation failed: ${resp.status} ${resp.statusText}`);
+  }
 }
 async function fetchTurtle(url) {
   try {
@@ -19800,6 +19833,23 @@ function agentUrl(storageUrl) {
   const base = storageUrl.endsWith("/") ? storageUrl : `${storageUrl}/`;
   return `${base}${AGENT_PATH}`;
 }
+async function serializeDataset(store) {
+  return await new Promise((resolve, reject) => {
+    const writer = new N3Writer({
+      prefixes: {
+        comidas: "https://comidas.gratis/vocab#",
+        foaf: "http://xmlns.com/foaf/0.1/",
+        ical: "http://www.w3.org/2002/12/cal/ical#",
+        wgs84: "http://www.w3.org/2003/01/geo/wgs84_pos#"
+      }
+    });
+    for (const quad3 of store) writer.addQuad(quad3);
+    writer.end((err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+}
 async function readAgentFromPod(webId) {
   const storage = await getStorageUrl(webId);
   if (!storage) return null;
@@ -19829,21 +19879,7 @@ async function writeAgentToPod(agent, webId) {
   }
   const store = new N3Store();
   agentToRdf(agent, store, N3DataFactory_default2);
-  const turtle = await new Promise((resolve, reject) => {
-    const writer = new N3Writer({
-      prefixes: {
-        comidas: "https://comidas.gratis/vocab#",
-        foaf: "http://xmlns.com/foaf/0.1/",
-        ical: "http://www.w3.org/2002/12/cal/ical#",
-        wgs84: "http://www.w3.org/2003/01/geo/wgs84_pos#"
-      }
-    });
-    for (const quad3 of store) writer.addQuad(quad3);
-    writer.end((err, result) => {
-      if (err) reject(err);
-      else resolve(result);
-    });
-  });
+  const turtle = await serializeDataset(store);
   const headers = {
     "Content-Type": "text/turtle"
   };

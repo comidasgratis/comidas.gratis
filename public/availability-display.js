@@ -40,9 +40,20 @@ export function providerAvailabilitiesAtLocation(agent, refLocation) {
 }
 
 const scheduleRe = /^(\d{4})-(\d{2})-(\d{2})\s*T(\d{1,2}):(\d{2})(am|pm)$/i;
+const datetimeLocalRe = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
 
 export function parseScheduleDate(str) {
   if (!str) return null;
+  const local = datetimeLocalRe.exec(str);
+  if (local) {
+    return new Date(
+      parseInt(local[1], 10),
+      parseInt(local[2], 10) - 1,
+      parseInt(local[3], 10),
+      parseInt(local[4], 10),
+      parseInt(local[5], 10),
+    );
+  }
   const m = scheduleRe.exec(str);
   if (!m) return null;
   let hour = parseInt(m[4], 10);

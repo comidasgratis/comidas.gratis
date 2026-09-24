@@ -11,8 +11,9 @@ import { ComidasDataset, agentToRdf, agentFromRdf } from "../data/rdf.js";
 void BrowserBuffer;
 void BrowserEvents;
 
-const AGENT_PATH = "comidas-gratis/agent.ttl";
-const CONTAINER_PATH = "comidas-gratis/";
+const AGENT_PATH = "public/comidas.gratis/agent.ttl";
+const CONTAINER_PATH = "public/comidas.gratis/";
+const pendingAuth = new Map<string, Promise<string>>();
 
 /**
  * Ensure the user is authenticated by attempting a write to their pod.
@@ -20,6 +21,18 @@ const CONTAINER_PATH = "comidas-gratis/";
  * causing the patched fetch to run the OIDC popup flow.
  */
 export async function ensureAuthenticated(webId: string): Promise<string> {
+  const pending = pendingAuth.get(webId);
+  if (pending) return pending;
+
+  const probe = authenticate(webId).catch((error) => {
+    pendingAuth.delete(webId);
+    throw error;
+  });
+  pendingAuth.set(webId, probe);
+  return probe;
+}
+
+async function authenticate(webId: string): Promise<string> {
   const storage = await getStorageUrl(webId);
   if (!storage) throw new Error("No Pod storage URL found in WebID profile");
 
@@ -28,19 +41,53 @@ export async function ensureAuthenticated(webId: string): Promise<string> {
 
   // PUT to the container — if unauthenticated this 401s, triggering the
   // reactive auth flow (OIDC popup). After auth the retry creates the
-  // container (or 409/200 if it already exists). Either outcome is fine.
+  // container (or 409/200 if it already exists).
   const resp = await fetch(containerUrl, {
     method: "PUT",
-    headers: { "Content-Type": "text/turtle", "If-None-Match": "*" },
+    headers: {
+      "Content-Type": "text/turtle",
+      "If-None-Match": "*",
+      Link: "<http://www.w3.org/ns/ldp#BasicContainer>; rel=\"type\"",
+    },
     body: "",
   });
 
-  // 201 = created, 200/204 = existed, 412 = existed (If-None-Match failed) — all fine
-  if (!resp.ok && resp.status !== 412) {
+  // 201 = created, 200/204 = existed, 409 = already exists, 412 = existed
+  // (If-None-Match failed) — all confirm that authentication succeeded.
+  if (!resp.ok && resp.status !== 409 && resp.status !== 412) {
     throw new Error(`Auth probe failed: ${resp.status} ${resp.statusText}`);
   }
 
+  await createAgentIfMissing(webId, agentUrl(storage));
   return storage;
+}
+
+async function createAgentIfMissing(webId: string, url: string): Promise<void> {
+  const store = new Store();
+  agentToRdf(
+    {
+      "@id": webId,
+      name: webId,
+      locations: [],
+      availabilities: [],
+    },
+    store,
+    DataFactory,
+  );
+
+  const resp = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "text/turtle",
+      "If-None-Match": "*",
+    },
+    body: await serializeDataset(store),
+  });
+
+  // 201 = created; 409/412 = the resource already exists.
+  if (!resp.ok && resp.status !== 409 && resp.status !== 412) {
+    throw new Error(`Agent resource creation failed: ${resp.status} ${resp.statusText}`);
+  }
 }
 
 async function fetchTurtle(
@@ -82,6 +129,24 @@ function agentUrl(storageUrl: string): string {
   return `${base}${AGENT_PATH}`;
 }
 
+async function serializeDataset(store: DatasetCore): Promise<string> {
+  return await new Promise<string>((resolve, reject) => {
+    const writer = new Writer({
+      prefixes: {
+        comidas: "https://comidas.gratis/vocab#",
+        foaf: "http://xmlns.com/foaf/0.1/",
+        ical: "http://www.w3.org/2002/12/cal/ical#",
+        wgs84: "http://www.w3.org/2003/01/geo/wgs84_pos#",
+      },
+    });
+    for (const quad of store) writer.addQuad(quad);
+    writer.end((err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+}
+
 export async function readAgentFromPod(webId: string): Promise<Agent | null> {
   const storage = await getStorageUrl(webId);
   if (!storage) return null;
@@ -120,21 +185,7 @@ export async function writeAgentToPod(
   const store = new Store();
   agentToRdf(agent, store, DataFactory);
 
-  const turtle = await new Promise<string>((resolve, reject) => {
-    const writer = new Writer({
-      prefixes: {
-        comidas: "https://comidas.gratis/vocab#",
-        foaf: "http://xmlns.com/foaf/0.1/",
-        ical: "http://www.w3.org/2002/12/cal/ical#",
-        wgs84: "http://www.w3.org/2003/01/geo/wgs84_pos#",
-      },
-    });
-    for (const quad of store) writer.addQuad(quad);
-    writer.end((err, result) => {
-      if (err) reject(err);
-      else resolve(result);
-    });
-  });
+  const turtle = await serializeDataset(store);
 
   const headers: Record<string, string> = {
     "Content-Type": "text/turtle",
