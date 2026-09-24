@@ -1,12 +1,11 @@
 import { defaultProviderAgent } from './role-pages-lib.js';
 import {
-  initSession,
-  solidLogin,
-  solidLogout,
-  getSessionInfo,
-  readAgentFromPod,
-  writeAgentToPod,
-} from './solid-pod.js';
+  setupAuth,
+  getStoredWebId,
+  setStoredWebId,
+  clearStoredWebId,
+} from './solid-auth.js';
+import { ensureAuthenticated, readAgentFromPod, writeAgentToPod } from './solid-pod.js';
 
 const STORAGE_KEY = 'comidas.gratis.provider.v4';
 
@@ -209,17 +208,6 @@ function updateLoginUI(info) {
   }
 }
 
-function wireLoginUI() {
-  document.querySelector('#btn-login')?.addEventListener('click', () => {
-    const issuer = document.querySelector('#oidc-issuer')?.value?.trim();
-    if (issuer) solidLogin(issuer);
-  });
-  document.querySelector('#btn-logout')?.addEventListener('click', async () => {
-    await solidLogout();
-    updateLoginUI({ isLoggedIn: false });
-  });
-}
-
 async function main() {
   const form = document.querySelector('#provider-form');
   const status = document.querySelector('#form-status');
@@ -228,13 +216,13 @@ async function main() {
   const locTpl = document.querySelector('#location-tpl');
   const avTpl = document.querySelector('#availability-tpl');
 
-  wireLoginUI();
-  const session = await initSession();
-  updateLoginUI(session);
+  setupAuth();
 
-  if (session.isLoggedIn) {
+  const storedWebId = getStoredWebId();
+  if (storedWebId) {
+    updateLoginUI({ isLoggedIn: true, webId: storedWebId });
     try {
-      const podAgent = await readAgentFromPod();
+      const podAgent = await readAgentFromPod(storedWebId);
       if (podAgent) {
         fillForm(podAgent);
         saveProfile(podAgent);
@@ -248,6 +236,38 @@ async function main() {
   } else {
     fillForm(loadProfile());
   }
+
+  document.querySelector('#btn-login')?.addEventListener('click', async () => {
+    const webId = document.querySelector('#webid-input')?.value?.trim();
+    if (!webId) {
+      setStatus(status, 'Enter your WebID to log in.', true);
+      return;
+    }
+    try {
+      setStoredWebId(webId);
+      setStatus(status, 'Authenticating...');
+      await ensureAuthenticated(webId);
+      updateLoginUI({ isLoggedIn: true, webId });
+      const podAgent = await readAgentFromPod(webId);
+      if (podAgent) {
+        fillForm(podAgent);
+        saveProfile(podAgent);
+        setStatus(status, 'Loaded from Solid Pod.');
+      } else {
+        setStatus(status, 'Logged in. No saved data on Pod yet.');
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      clearStoredWebId();
+      updateLoginUI({ isLoggedIn: false });
+      setStatus(status, `Login failed: ${e.message}`, true);
+    }
+  });
+
+  document.querySelector('#btn-logout')?.addEventListener('click', () => {
+    clearStoredWebId();
+    updateLoginUI({ isLoggedIn: false });
+  });
 
   document.querySelector('#add-location').addEventListener('click', () => {
     addLocationRow(locList, locTpl, null);
@@ -301,9 +321,10 @@ async function main() {
     }
     saveProfile(agent);
 
-    if (getSessionInfo().isLoggedIn) {
+    const webId = getStoredWebId();
+    if (webId) {
       try {
-        await writeAgentToPod(agent);
+        await writeAgentToPod(agent, webId);
         setStatus(status, 'Saved to Solid Pod and local storage.');
       } catch (err) {
         setStatus(status, `Saved locally. Pod write failed: ${err.message}`, true);

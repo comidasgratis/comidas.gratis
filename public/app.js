@@ -1,15 +1,12 @@
-/**
- * Vanilla UI: wires the ComidasMatchingStore web component to the calendar view.
- * Depends on /register-store.js (bundled from client/register-store.ts).
- */
 import './register-store.js';
 import { createCalendar } from './calendar.js';
 import { parseScheduleDate } from './availability-display.js';
 import {
-  initSession,
-  solidLogin,
-  solidLogout,
-} from './solid-pod.js';
+  setupAuth,
+  getStoredWebId,
+  setStoredWebId,
+  clearStoredWebId,
+} from './solid-auth.js';
 
 function agentNameById(store, id) {
   const a = store.state.agents.find((x) => x['@id'] === id);
@@ -99,21 +96,25 @@ function updateLoginUI(info) {
   }
 }
 
-function wireLoginUI() {
+async function main() {
+  setupAuth();
+
+  const storedWebId = getStoredWebId();
+  if (storedWebId) {
+    updateLoginUI({ isLoggedIn: true, webId: storedWebId });
+  }
+
   document.querySelector('#btn-login')?.addEventListener('click', () => {
-    const issuer = document.querySelector('#oidc-issuer')?.value?.trim();
-    if (issuer) solidLogin(issuer);
+    const webId = document.querySelector('#webid-input')?.value?.trim();
+    if (!webId) return;
+    setStoredWebId(webId);
+    updateLoginUI({ isLoggedIn: true, webId });
   });
-  document.querySelector('#btn-logout')?.addEventListener('click', async () => {
-    await solidLogout();
+
+  document.querySelector('#btn-logout')?.addEventListener('click', () => {
+    clearStoredWebId();
     updateLoginUI({ isLoggedIn: false });
   });
-}
-
-async function main() {
-  wireLoginUI();
-  const session = await initSession();
-  updateLoginUI(session);
 
   const store = document.querySelector('#store');
   if (!store || !('seedDemoData' in store)) {

@@ -19,11 +19,12 @@
       <p class="tagline">Edit a provider agent: locations, schedules, provisions.</p>
     </header>
 
+    <authorization-code-flow></authorization-code-flow>
     <div id="solid-login" class="solid-login">
       <div id="logged-out-view">
         <label>
-          Solid provider
-          <input type="url" id="oidc-issuer" value="https://login.inrupt.com" placeholder="https://login.inrupt.com" />
+          Your WebID
+          <input type="url" id="webid-input" placeholder="https://you.solidcommunity.net/profile/card#me" />
         </label>
         <button type="button" id="btn-login" class="btn">Log in with Solid</button>
       </div>
