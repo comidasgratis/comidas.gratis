@@ -1,9 +1,10 @@
 {
   "@context": "https://www.w3.org/ns/solid/oidc-context.jsonld",
-  "client_id": "https://comidas.gratis/client-id.jsonld",
+  "client_id": "https://raw.githubusercontent.com/comidasgratis/comidas.gratis/main/public/client-id.jsonld",
   "client_name": "comidas.gratis",
   "redirect_uris": [
     "http://localhost:8080/callback.html",
+    "http://127.0.0.1:8080/callback.html",
     "https://comidas.gratis/callback.html"
   ],
   "grant_types": ["authorization_code"],

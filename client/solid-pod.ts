@@ -1,7 +1,15 @@
+import { fetchRdf, RdfFetchError } from "@jeswr/fetch-rdf";
 import { WebIdDataset } from "@solid/object";
-import { Store, Parser, Writer, DataFactory } from "n3";
+import * as BrowserBuffer from "buffer";
+import * as BrowserEvents from "events";
+import { Store, Writer, DataFactory } from "n3";
+import type { DatasetCore } from "@rdfjs/types";
 import type { Agent } from "../data/model.js";
 import { ComidasDataset, agentToRdf, agentFromRdf } from "../data/rdf.js";
+
+// Keep the browser Buffer implementation in the bundle for stream dependencies.
+void BrowserBuffer;
+void BrowserEvents;
 
 const AGENT_PATH = "comidas-gratis/agent.ttl";
 const CONTAINER_PATH = "comidas-gratis/";
@@ -37,18 +45,16 @@ export async function ensureAuthenticated(webId: string): Promise<string> {
 
 async function fetchTurtle(
   url: string,
-): Promise<{ store: Store; etag: string | null }> {
-  const resp = await fetch(url, {
-    headers: { Accept: "text/turtle" },
-  });
-  if (!resp.ok) {
-    throw new FetchError(resp.status, url);
+): Promise<{ store: DatasetCore; etag: string | null }> {
+  try {
+    const result = await fetchRdf(url);
+    return { store: result.dataset, etag: result.etag };
+  } catch (error) {
+    if (error instanceof RdfFetchError) {
+      throw new FetchError(error.status ?? 0, error.url ?? url);
+    }
+    throw error;
   }
-  const turtle = await resp.text();
-  const store = new Store();
-  const parser = new Parser({ baseIRI: url });
-  store.addQuads(parser.parse(turtle));
-  return { store, etag: resp.headers.get("etag") };
 }
 
 export class FetchError extends Error {

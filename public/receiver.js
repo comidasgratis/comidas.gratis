@@ -312,13 +312,14 @@ async function main() {
   const radius = document.querySelector('#radius');
   const radiusValue = document.querySelector('#radius-value');
 
-  setupAuth();
+  setupAuth(() => document.querySelector('#webid-input')?.value?.trim() ?? getStoredWebId() ?? '');
 
   let current;
   const storedWebId = getStoredWebId();
   if (storedWebId) {
-    updateLoginUI({ isLoggedIn: true, webId: storedWebId });
     try {
+      await ensureAuthenticated(storedWebId);
+      updateLoginUI({ isLoggedIn: true, webId: storedWebId });
       const podAgent = await readAgentFromPod(storedWebId);
       if (podAgent) {
         current = podAgent;
@@ -344,9 +345,9 @@ async function main() {
       return;
     }
     try {
-      setStoredWebId(webId);
       setStatus(status, 'Authenticating...');
       await ensureAuthenticated(webId);
+      setStoredWebId(webId);
       updateLoginUI({ isLoggedIn: true, webId });
       const podAgent = await readAgentFromPod(webId);
       if (podAgent) {

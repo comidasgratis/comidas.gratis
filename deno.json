@@ -1,7 +1,7 @@
 {
   "vendor": true,
   "tasks": {
-    "bundle": "deno bundle --platform browser -c deno.json ./client/register-store.ts -o ./public/register-store.js && deno bundle --platform browser -c deno.json ./client/role-pages-lib.ts -o ./public/role-pages-lib.js && deno bundle --platform browser -c deno.json ./client/solid-auth.ts -o ./public/solid-auth.js && deno bundle --platform browser -c deno.json ./client/solid-pod.ts -o ./public/solid-pod.js && sed -i 's|from \"node:buffer\"|from \"data:text/javascript,export var Buffer=globalThis.Buffer\"|g' ./public/solid-pod.js",
+    "bundle": "deno bundle --platform browser -c deno.json ./client/register-store.ts -o ./public/register-store.js && deno bundle --platform browser -c deno.json ./client/role-pages-lib.ts -o ./public/role-pages-lib.js && deno bundle --platform browser -c deno.json ./client/solid-auth.ts -o ./public/solid-auth.js && deno bundle --platform browser -c deno.json ./client/solid-pod.ts -o ./public/solid-pod.js && sed -i -e 's|from \"node:buffer\"|from \"data:text/javascript,export var Buffer=globalThis.Buffer\"|g' -e 's|import { Buffer as Buffer2 } from \"node:buffer\";|var Buffer2 = require_buffer().Buffer;|g' -e 's|__require(\"node:buffer\")|require_buffer()|g' -e 's|__require(\"node:events\")|require_events()|g' public/solid-auth.js public/solid-pod.js",
     "serve": "deno run --allow-net --allow-read ./server.ts",
     "start": "deno task bundle && deno task serve"
   },
@@ -9,9 +9,14 @@
     "@chapeaux/cpx-store": "jsr:@chapeaux/cpx-store@^0.7.5",
     "@rdfjs/wrapper": "npm:@rdfjs/wrapper@^0.32.0",
     "@rdfjs/types": "npm:@rdfjs/types@^2.0.0",
+    "@jeswr/fetch-rdf": "npm:@jeswr/fetch-rdf@^0.1.0",
     "@solid/object": "npm:@solid/object@^0.6.0",
     "@solid/reactive-authentication": "npm:@solid/reactive-authentication@^0.1.2",
     "n3": "npm:n3@^1.26.0",
-    "@types/n3": "npm:@types/n3@^1.21.0"
+    "@types/n3": "npm:@types/n3@^1.21.0",
+    "dpop": "npm:dpop@^2.1.1",
+    "oauth4webapi": "npm:oauth4webapi@^3.8.6",
+    "buffer": "npm:buffer@^6.0.3",
+    "events": "npm:events@^3.3.0"
   }
 }

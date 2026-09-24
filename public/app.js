@@ -7,6 +7,7 @@ import {
   setStoredWebId,
   clearStoredWebId,
 } from './solid-auth.js';
+import { ensureAuthenticated } from './solid-pod.js';
 
 function agentNameById(store, id) {
   const a = store.state.agents.find((x) => x['@id'] === id);
@@ -97,18 +98,29 @@ function updateLoginUI(info) {
 }
 
 async function main() {
-  setupAuth();
+  setupAuth(() => document.querySelector('#webid-input')?.value?.trim() ?? getStoredWebId() ?? '');
 
   const storedWebId = getStoredWebId();
   if (storedWebId) {
-    updateLoginUI({ isLoggedIn: true, webId: storedWebId });
+    try {
+      await ensureAuthenticated(storedWebId);
+      updateLoginUI({ isLoggedIn: true, webId: storedWebId });
+    } catch {
+      clearStoredWebId();
+    }
   }
 
-  document.querySelector('#btn-login')?.addEventListener('click', () => {
+  document.querySelector('#btn-login')?.addEventListener('click', async () => {
     const webId = document.querySelector('#webid-input')?.value?.trim();
     if (!webId) return;
-    setStoredWebId(webId);
-    updateLoginUI({ isLoggedIn: true, webId });
+    try {
+      await ensureAuthenticated(webId);
+      setStoredWebId(webId);
+      updateLoginUI({ isLoggedIn: true, webId });
+    } catch (error) {
+      console.error('Solid login failed', error);
+      updateLoginUI({ isLoggedIn: false });
+    }
   });
 
   document.querySelector('#btn-logout')?.addEventListener('click', () => {
